@@ -4,8 +4,9 @@ import java.util.*;
 
 public class SimpleList<T> implements List<T> {
 
-    private final static int DEFAULT_CAPACITY = 10;
-    private final static Object[] EMPTY_ARRAY = {};
+    private static final int DEFAULT_CAPACITY = 10;
+    private static final Object[] EMPTY_ARRAY = {};
+
 
     private int size = 0;
     private int capacity = 0;
@@ -26,7 +27,6 @@ public class SimpleList<T> implements List<T> {
             }
         }
     }
-
 
 
     @Override
@@ -70,8 +70,13 @@ public class SimpleList<T> implements List<T> {
     }
 
     @Override
-    public <T1> T1[] toArray(T1[] a) {
-        return null;
+    public <R> R[] toArray(R[] a) {
+        if (a.length < size) {
+            return (R[]) Arrays.copyOf(elementArray, size, a.getClass());
+        } else {
+            System.arraycopy(elementArray, 0, a, 0, size);
+            return a;
+        }
     }
 
     @Override
@@ -191,17 +196,13 @@ public class SimpleList<T> implements List<T> {
 
     @Override
     public T get(int index) {
-        if (index >= size) {
-            throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
-        }
+        rangeCheck(index);
         return (T) elementArray[index];
     }
 
     @Override
     public T set(int index, T element) {
-        if (index >= size) {
-            throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
-        }
+        rangeCheck(index);
 
         T oldValue = (T) elementArray[index];
         elementArray[index] = element;
@@ -210,9 +211,8 @@ public class SimpleList<T> implements List<T> {
 
     @Override
     public void add(int index, T element) {
-        if (index >= size) {
-            throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
-        }
+        rangeCheck(index);
+
         elementArray[index] = element;
     }
 
@@ -265,7 +265,7 @@ public class SimpleList<T> implements List<T> {
         if (toIndex > size)
             throw new IndexOutOfBoundsException("toIndex = " + toIndex);
         if (fromIndex > toIndex)
-            throw new IllegalArgumentException("fromIndex(" + fromIndex +") > toIndex(" + toIndex + ")");
+            throw new IllegalArgumentException("fromIndex(" + fromIndex + ") > toIndex(" + toIndex + ")");
 
         SimpleList<T> subList = new SimpleList<>();
         subList.elementArray = Arrays.copyOfRange(elementArray, fromIndex, toIndex);
@@ -276,19 +276,22 @@ public class SimpleList<T> implements List<T> {
 
     private void initIfNeed() {
         if (elementArray == EMPTY_ARRAY && capacity == 0) {
-            elementArray = new Object[capacity = DEFAULT_CAPACITY];
+            capacity = DEFAULT_CAPACITY;
+            elementArray = new Object[capacity];
         }
     }
 
     private void ensureCapacity() {
         if (capacity == size) {
-            elementArray = Arrays.copyOf(elementArray, capacity = capacity + DEFAULT_CAPACITY);
+            capacity = capacity + DEFAULT_CAPACITY;
+            elementArray = Arrays.copyOf(elementArray, capacity);
         }
     }
 
     private void ensureCapacity(int newSize) {
         if (capacity <= newSize) {
-            elementArray = Arrays.copyOf(elementArray, capacity = newSize + DEFAULT_CAPACITY);
+            capacity = newSize + DEFAULT_CAPACITY;
+            elementArray = Arrays.copyOf(elementArray, capacity);
         }
     }
 
@@ -310,7 +313,8 @@ public class SimpleList<T> implements List<T> {
             Object[] elementData = SimpleList.this.elementArray;
             if (cursor >= elementData.length)
                 throw new ConcurrentModificationException();
-            return (T) elementData[returned = cursor++];
+            returned = cursor++;
+            return (T) elementData[returned];
         }
 
         @Override
@@ -327,6 +331,11 @@ public class SimpleList<T> implements List<T> {
                 throw new ConcurrentModificationException();
             }
         }
+    }
+
+    private void rangeCheck(int index) {
+        if (index >= size)
+            throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
     }
 }
 

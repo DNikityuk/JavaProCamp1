@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsCollectionContaining.hasItem;
 import static org.hamcrest.core.IsCollectionContaining.hasItems;
@@ -343,6 +344,25 @@ public class SimpleListTest {
         consArray.add("elem7");
         consArray.add("elem8");
         Assert.assertThat(consArray.size(), is(7));
+    }
 
+    @Test
+    public void toArrayTypeTest() {
+        String[] resultArray = array.toArray(new String[4]);
+
+        Assert.assertThat(resultArray, instanceOf(String[].class));
+        Assert.assertThat(Arrays.asList(resultArray), containsInAnyOrder(defaultStringArray));
+        Assert.assertThat(Arrays.asList(resultArray), hasItems(defaultStringArray));
+
+        String[] testArray = new String[8];
+        testArray[7] = "elem7";
+        testArray[5] = "elem5";
+        resultArray = array.toArray(testArray);
+
+        Assert.assertThat(resultArray, instanceOf(String[].class));
+        Assert.assertThat(Arrays.asList(resultArray), hasItems(defaultStringArray));
+        Assert.assertThat(Arrays.asList(resultArray), hasItems("elem5", "elem7"));
+
+        Assert.assertArrayEquals(new String[]{"elem0","elem1","elem2","elem3","elem4","elem5",null,"elem7"}, resultArray);
     }
 }
